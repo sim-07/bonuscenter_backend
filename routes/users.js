@@ -6,9 +6,13 @@ const supabase = require('../utils/supabaseClient');
 
 require('dotenv').config();
 
+const { v4: uuidv4 } = require('uuid');
+
+
 router.post('/create_user', async (req, res) => {
 
     const { username, email, password } = req.body;
+    const user_id = uuidv4();
 
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -21,6 +25,7 @@ router.post('/create_user', async (req, res) => {
             .from('users')
             .insert([
                 {
+                    user_id,
                     username,
                     email,
                     password: hashedPassword,
@@ -35,26 +40,35 @@ router.post('/create_user', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { email },
+            { username, user_id },
             process.env.JWT_SECRET,
             { expiresIn: '3d' }
         );
 
-        res
+        return res
             .cookie('authToken', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 maxAge: 1000 * 60 * 60 * 72,
             })
-            .cookie('email', email, {
+            .cookie('username', username, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 maxAge: 1000 * 60 * 60 * 72,
             })
-
-        res.status(201).json({ message: 'User created successfully', data });
+            .cookie('user_id', user_id, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
+            .status(201)
+            .json({
+              message: 'User created successfully',
+              user: { user_id, username, email }
+            });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Something went wrong', details: err.message });
