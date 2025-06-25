@@ -8,7 +8,6 @@ require('dotenv').config();
 
 const { v4: uuidv4 } = require('uuid');
 
-
 router.post('/create_user', async (req, res) => {
 
     const { username, email, password } = req.body;
@@ -68,8 +67,8 @@ router.post('/create_user', async (req, res) => {
             })
             .status(201)
             .json({
-              message: 'User created successfully',
-              user: { user_id, username, email }
+                message: 'User created successfully',
+                user: { user_id, username, email }
             });
     } catch (err) {
         console.error(err);
@@ -138,8 +137,8 @@ router.post('/login', async (req, res) => {
             })
             .status(201)
             .json({
-              message: 'Login successful',
-              user: { user_id, username }
+                message: 'Login successful',
+                user: { user_id, username }
             });
 
 
@@ -149,17 +148,46 @@ router.post('/login', async (req, res) => {
 
 });
 
+router.post('/get_user_data', (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+        const username = decodedData.username;
+
+        if (!user_id || !username) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        return res.status(200).json({ user_id, username });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
 
 router.post('/logout', (req, res) => {
     try {
-      res.clearCookie('authToken');
-      res.clearCookie('username');
-      res.clearCookie('user_id');
-  
-      return res.status(200).json({ message: 'Logged out successfully' });
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        };
+
+        res.clearCookie('authToken', cookieOptions);
+        res.clearCookie('username', cookieOptions);
+        res.clearCookie('user_id', cookieOptions);
+
+        console.log('Logged out successfully');
+        return res.status(200).json({ message: 'Logged out successfully' });
     } catch (err) {
-      return res.status(500).json({ error: 'Something went wrong during logout', details: err.message });
+        return res.status(500).json({ error: 'Something went wrong during logout', details: err.message });
     }
-  });
+});
 
 module.exports = router;
