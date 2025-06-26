@@ -50,4 +50,38 @@ router.post('/post_code', async (req, res) => {
     }
 });
 
+router.post('/get_user_codes', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        if (!user_id) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        const { data, error } = await supabase
+            .from('referral_codes')
+            .select('*')
+            .eq('user_id', user_id);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        if (!data || data.length === 0) {
+            return res.status(200).json({ message: 'No referral codes yet', data: [] });
+          }
+
+        res.status(200).json({ message: "User codes recovered successfully", data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
 module.exports = router;

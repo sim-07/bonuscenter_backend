@@ -68,7 +68,7 @@ router.post('/create_user', async (req, res) => {
             .status(201)
             .json({
                 message: 'User created successfully',
-                user: { user_id, username, email }
+                userData: { user_id, username, email }
             });
     } catch (err) {
         console.error(err);
@@ -138,7 +138,7 @@ router.post('/login', async (req, res) => {
             .status(201)
             .json({
                 message: 'Login successful',
-                user: { user_id, username }
+                userData: { user_id, username }
             });
 
 
