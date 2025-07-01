@@ -148,11 +148,13 @@ router.post('/login', async (req, res) => {
 
 });
 
-router.post('/get_user_data', (req, res) => {
+router.post('/get_user_data', async (req, res) => {
     const token = req.cookies.authToken;
     if (!token) {
         return res.status(401).json({ error: 'Not authenticated' });
     }
+
+    
 
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
@@ -163,7 +165,12 @@ router.post('/get_user_data', (req, res) => {
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
-        return res.status(200).json({ user_id, username });
+        const { data, error } = await supabase
+            .from('users')
+            .select('username, email, created_at')
+            .eq('user_id', user_id);
+
+        return res.status(200).json({ data });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Something went wrong', details: err.message });
