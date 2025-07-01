@@ -4,6 +4,8 @@ const supabase = require('../utils/supabaseClient');
 
 require('dotenv').config();
 
+const { v4: uuidv4 } = require('uuid');
+
 const jwt = require('jsonwebtoken');
 
 router.post('/post_code', async (req, res) => {
@@ -18,9 +20,12 @@ router.post('/post_code', async (req, res) => {
         return res.status(401).json({ error: 'Not authenticated' });
     }
 
+    const code_id = uuidv4();
+
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
         const user_id = decodedData.user_id;
+        const username = decodedData.username;
 
         if (!user_id) {
             return res.status(401).json({ error: 'Not authenticated' });
@@ -30,7 +35,9 @@ router.post('/post_code', async (req, res) => {
             .from('referral_codes')
             .insert([
                 {
+                    code_id: code_id,
                     user_id: user_id,
+                    username: username,
                     name,
                     title,
                     brand,
@@ -85,8 +92,44 @@ router.post('/get_user_codes', async (req, res) => {
     }
 });
 
+router.post('/get_user_code', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
 
-router.post('/get_referral_codes', async (req, res) => {
+    const { code_id } = req.body;
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        if (!user_id) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        const { data, error } = await supabase
+            .from('referral_codes')
+            .select('*')
+            .eq('code_id', code_id);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        if (!data || data.length === 0) {
+            return res.status(200).json({ message: 'No referral code', data: [] });
+        }
+
+        res.status(200).json({ message: "User code recovered successfully", data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
+
+router.post('/get_all_referral_codes', async (req, res) => {
     const { name } = req.body;
 
     try {
@@ -100,10 +143,11 @@ router.post('/get_referral_codes', async (req, res) => {
         }
 
         if (!data || data.length === 0) {
+            console.log("NAME get_all_referral_codes: " + name)
             return res.status(200).json({ message: 'No referral codes yet', data: [] });
         }
 
-        console.log("DATA get_referral_codes: ", data)
+        console.log("DATA get_all_referral_codes: ", data)
 
         res.status(200).json({ message: "User codes recovered successfully", data });
     } catch (err) {
@@ -111,6 +155,103 @@ router.post('/get_referral_codes', async (req, res) => {
         res.status(500).json({ error: 'Something went wrong', details: err.message });
     }
 
+});
+
+router.post('/update_code', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { code_id, title, name, code, description, brand, bonus_value } = req.body;
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        if (!user_id) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        const { data: dataUserId, error: errorUserId } = await supabase
+            .from('referral_codes')
+            .select('user_id')
+            .eq('code_id', code_id)
+            .single();
+
+        const fetched_user_id = dataUserId.user_id;
+        if (fetched_user_id !== user_id || errorUserId) {
+            return res.status(500).json({ error: errorUserId ? errorUserId.message : "Action not permitted" });
+        }
+
+        const { data: dataUpdate, error: errorUpdate } = await supabase
+            .from('referral_codes')
+            .update({
+                title,
+                name,
+                code,
+                description,
+                brand,
+                bonus_value
+            })
+            .eq('code_id', code_id);
+
+        if (errorUpdate) {
+            return res.status(500).json({ error: errorUpdate.message });
+        }
+
+        res.status(200).json({ message: "Code updated succesfully", dataUpdate });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
+router.post('/delete_code', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { code_id } = req.body;
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        if (!user_id) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        if (!code_id) {
+            return res.status(400).json({ error: 'code_id missing' });
+        }
+
+        const { data: dataUserId, error: errorUserId } = await supabase
+            .from('referral_codes')
+            .select('user_id')
+            .eq('code_id', code_id)
+            .single();
+
+        const fetched_user_id = dataUserId.user_id;
+        if (fetched_user_id !== user_id || errorUserId) {
+            return res.status(500).json({ error: errorUserId ? errorUserId.message : "Action not permitted" });
+        }
+
+        const { error: deleteError } = await supabase
+            .from('referral_codes')
+            .delete()
+            .eq('code_id', code_id);
+
+        if (deleteError) {
+            return res.status(500).json({ error: deleteError.message });
+        }
+
+        res.status(200).json({ message: "Code deleted succesfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
 });
 
 module.exports = router;
