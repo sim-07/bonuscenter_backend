@@ -34,6 +34,7 @@ router.post('/create_user', async (req, res) => {
             ]);
 
         if (error) {
+            // Affido al db il controllo di unicità
             if (error.code === '23505') {
                 return res.status(409).json({ error: 'Email o username già registrati' });
             }
