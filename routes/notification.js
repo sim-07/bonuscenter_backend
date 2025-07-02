@@ -8,73 +8,74 @@ require('dotenv').config();
 
 const { v4: uuidv4 } = require('uuid');
 
-router.post('/create_user', async (req, res) => {
+router.post('/create_notification', async (req, res) => {
+    const { receiver, type, message, read } = req.body;
 
-    const { username, email, password } = req.body;
-    const user_id = uuidv4();
-
-    console.log("DATI RICEVUTI create_user: " + username + " " + email + " " + password)
-
-    if (!username || !email || !password) {
-        return res.status(400).json({ error: 'Missing required fields' });
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const sender = decodedData.user_id;
 
-        const { data, error } = await supabase
-            .from('users')
+        const id = uuidv4();
+
+        const { error } = await supabase
+            .from('notifications')
             .insert([
                 {
-                    user_id,
-                    username,
-                    email,
-                    password: hashedPassword,
+                    id,
+                    receiver,
+                    sender,
+                    type, 
+                    message,
+                    read,
                 }
             ]);
 
         if (error) {
-            // Affido al db il controllo di unicità
-            if (error.code === '23505') {
-                return res.status(409).json({ error: 'Email o username già registrati' });
-            }
+            console.error('Errore in create_notification:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+
             return res.status(500).json({ error: error.message });
         }
 
-        const token = jwt.sign(
-            { username, user_id },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        );
+        res.status(200).json({ message: "Success" });
 
-        return res
-            .cookie('authToken', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-                maxAge: 1000 * 60 * 60 * 72,
-            })
-            .cookie('username', username, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-                maxAge: 1000 * 60 * 60 * 72,
-            })
-            .cookie('user_id', user_id, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-                maxAge: 1000 * 60 * 60 * 72,
-            })
-            .status(201)
-            .json({
-                message: 'User created successfully',
-                userData: { user_id, username, email }
-            });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Something went wrong', details: err.message });
     }
 });
+
+// router.post('/get_notifications', async (req, res) => {
+
+//     const token = req.cookies.authToken;
+//     if (!token) {
+//         return res.status(401).json({ error: 'Not authenticated' });
+//     }
+
+//     try {
+//         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+//         const user_id = decodedData.user_id;
+
+//         const { data, error } = await supabase
+//             .from('used_codes')
+//             .select("*")
+//             .eq("user_id", user_id)
+
+//         if (error) {
+//             return res.status(500).json({ error: error.message });
+//         }
+
+//         return res.status(200).json({ data });
+
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ error: 'Something went wrong', details: err.message });
+//     }
+// });
+
 
 module.exports = router;

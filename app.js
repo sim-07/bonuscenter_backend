@@ -5,19 +5,19 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 
-var usersRouter = require('./routes/users');
-var codesRouter = require('./routes/codes');
-var usedCodesRouter = require('./routes/used_codes');
-notificationRouter = require('./routes/notification');
+const usersRouter = require('./routes/users');
+const codesRouter = require('./routes/codes');
+const usedCodesRouter = require('./routes/used_codes');
+const notificationRouter = require('./routes/notification');
 
 var app = express();
 
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  console.log('Cookie:', req.cookies);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log('Cookie:', req.cookies);
+//   next();
+// });
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,

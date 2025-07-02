@@ -155,8 +155,6 @@ router.post('/get_user_data', async (req, res) => {
         return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    
-
     try {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
         const user_id = decodedData.user_id;
@@ -192,7 +190,7 @@ router.post('/logout', (req, res) => {
         res.clearCookie('user_id', cookieOptions);
 
         console.log('Logged out successfully');
-        return res.status(200).json({ message: 'Logged out successfully' });
+        res.status(200).json({ message: "Success" });
     } catch (err) {
         return res.status(500).json({ error: 'Something went wrong during logout', details: err.message });
     }

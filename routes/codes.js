@@ -51,7 +51,7 @@ router.post('/post_code', async (req, res) => {
             return res.status(500).json({ error: error.message });
         }
 
-        res.status(201).json({ message: 'Code added successfully', data });
+        res.status(200).json({ message: "Success" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Something went wrong', details: err.message });
@@ -143,7 +143,6 @@ router.post('/get_all_referral_codes', async (req, res) => {
         }
 
         if (!data || data.length === 0) {
-            console.log("NAME get_all_referral_codes: " + name)
             return res.status(200).json({ message: 'No referral codes yet', data: [] });
         }
 
