@@ -9,7 +9,7 @@ require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
 
 router.post('/set_used_code', async (req, res) => {
-    const { code_id, created_by, bonus_name, bonus_value, bonus_code } = req.body;
+    const { code_id, created_by, bonus_name, bonus_value, bonus_code, brand } = req.body;
 
     const token = req.cookies.authToken;
     if (!token) {
@@ -44,6 +44,7 @@ router.post('/set_used_code', async (req, res) => {
                     bonus_name,
                     bonus_value,
                     bonus_code,
+                    brand,
                     confirmed: false,
                 }
             ]);
@@ -75,6 +76,7 @@ router.post('/get_used_code', async (req, res) => {
             .from('used_codes')
             .select("*")
             .eq("user_id", user_id)
+            .eq("confirmed", true)
 
         if (error) {
             return res.status(500).json({ error: error.message });
