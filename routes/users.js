@@ -169,6 +169,10 @@ router.post('/get_user_data', async (req, res) => {
             .select('username, email, created_at')
             .eq('user_id', user_id);
 
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
         return res.status(200).json({ data });
     } catch (err) {
         console.error(err);
@@ -189,11 +193,46 @@ router.post('/logout', (req, res) => {
         res.clearCookie('username', cookieOptions);
         res.clearCookie('user_id', cookieOptions);
 
-        console.log('Logged out successfully');
         res.status(200).json({ message: "Success" });
     } catch (err) {
         return res.status(500).json({ error: 'Something went wrong during logout', details: err.message });
     }
 });
+
+router.post('/delete_account', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        const { data, error } = await supabase
+            .from('users')
+            .delete()
+            .eq('user_id', user_id)
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        };
+
+        res.clearCookie('authToken', cookieOptions);
+        res.clearCookie('username', cookieOptions);
+        res.clearCookie('user_id', cookieOptions);
+
+        res.status(200).json({ message: "Success" });
+    } catch (err) {
+        return res.status(500).json({ error: 'Something went wrong during logout', details: err.message });
+    }
+})
 
 module.exports = router;
