@@ -81,7 +81,6 @@ router.post('/get_used_code', async (req, res) => {
             .from('used_codes')
             .select("*")
             .eq("used_by", user_id)
-            .eq("confirmed", true)
 
         if (error) {
             return res.status(500).json({ error: error.message });
