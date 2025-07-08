@@ -16,11 +16,6 @@ const app = express();
 app.use(logger('dev'));
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  console.log('Request', req.method, req.url, 'Origin:', req.headers.origin);
-  next();
-});
-
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) {
@@ -42,7 +37,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-const csrfProtection = csrf({ cookie: true });
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    maxAge: 1000 * 60 * 60 * 72,
+  }
+});
 
 app.get('/csrf_token', csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
