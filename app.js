@@ -20,9 +20,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (origin.startsWith(process.env.FRONTEND_URL)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 
 const csrfProtection = csrf({ cookie: true });
 
