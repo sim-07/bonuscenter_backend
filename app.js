@@ -16,31 +16,30 @@ const app = express();
 app.use(logger('dev'));
 app.use(cookieParser());
 
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     if (!origin) {
-//       callback(null, true);
-//       return;
-//     }
-
-//     if (origin.startsWith(process.env.FRONTEND_URL)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true
-// }));
+app.use((req, res, next) => {
+  console.log('Request', req.method, req.url, 'Origin:', req.headers.origin);
+  next();
+});
 
 app.use(cors({
-  origin: '*',
+  origin: function (origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (origin.startsWith(process.env.FRONTEND_URL)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-
 
 
 const csrfProtection = csrf({ cookie: true });
