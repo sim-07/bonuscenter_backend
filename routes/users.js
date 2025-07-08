@@ -47,14 +47,25 @@ router.post('/create_user', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        const maxAgeSeconds = 1000 * 60 * 60 * 72 / 1000;
-
         return res
-            .setHeader('Set-Cookie', [
-                `authToken=${token}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`,
-                `username=${encodeURIComponent(username)}; Path=/; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`,
-                `user_id=${user_id}; Path=/; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`
-            ])
+            .cookie('authToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
+            .cookie('username', username, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
+            .cookie('user_id', user_id, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
             .status(201)
             .json({
                 message: 'User created successfully',
@@ -106,14 +117,25 @@ router.post('/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        const maxAgeSeconds = 1000 * 60 * 60 * 72 / 1000;
-
         return res
-            .setHeader('Set-Cookie', [
-                `authToken=${token}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`,
-                `username=${encodeURIComponent(username)}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`,
-                `user_id=${user_id}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`
-            ])
+            .cookie('authToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
+            .cookie('username', username, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
+            .cookie('user_id', user_id, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                maxAge: 1000 * 60 * 60 * 72,
+            })
             .status(201)
             .json({
                 message: 'Login successful',
