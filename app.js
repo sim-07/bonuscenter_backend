@@ -37,13 +37,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-const csrfProtection = csrf({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-    maxAge: 1000 * 60 * 60 * 72,
-  }
+app.get('/csrf_token', csrfProtection, (req, res) => {
+  const csrfToken = req.csrfToken();
+  const maxAgeSeconds = 1000 * 60 * 60 * 72 / 1000;
+
+  res.setHeader('Set-Cookie', `csrf_token=${csrfToken}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`);
+
+  res.json({ csrfToken });
 });
 
 app.get('/csrf_token', csrfProtection, (req, res) => {
