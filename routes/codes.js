@@ -146,8 +146,6 @@ router.post('/get_all_referral_codes', async (req, res) => {
             return res.status(200).json({ message: 'No referral codes yet', data: [] });
         }
 
-        console.log("DATA get_all_referral_codes: ", data)
-
         res.status(200).json({ message: "User codes recovered successfully", data });
     } catch (err) {
         console.error(err);
