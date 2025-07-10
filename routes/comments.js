@@ -15,7 +15,8 @@ router.post('/get_all_comments', async (req, res) => {
         const { data, error } = await supabase
             .from('comments')
             .select('*')
-            .eq('bonus_name', bonusName);
+            .eq('bonus_name', bonusName)
+            .order('created_at', { ascending: false });
 
         if (error) {
             return res.status(500).json({ error: error.message });
