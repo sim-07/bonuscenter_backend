@@ -94,6 +94,35 @@ router.post('/get_used_code', async (req, res) => {
     }
 });
 
+router.post('/get_user_used_code', async (req, res) => {
+
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        const { data, error } = await supabase
+            .from('used_codes')
+            .select("*")
+            .eq("created_by", user_id)
+            .eq("confirmed", true);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        return res.status(200).json({ data });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
 
 router.post('/confirm_code', async (req, res) => { 
     
