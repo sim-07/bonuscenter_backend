@@ -31,6 +31,10 @@ router.post('/post_code', async (req, res) => {
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
+        if (!bonus_value.trim().endsWith("€")) {
+            bonus_value = bonus_value.trim() + "€";
+        }
+
         const { data, error } = await supabase
             .from('referral_codes')
             .insert([
