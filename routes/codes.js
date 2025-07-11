@@ -255,5 +255,40 @@ router.post('/delete_code', async (req, res) => {
     }
 });
 
+router.post('/suggest_new_bonus', async (req, res) => {
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { bonus_name, bonus_description, bonus_value, note } = req.body;
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        const { data, error } = await supabase
+            .from('brand_suggestion')
+            .insert([
+                {
+                    user_id,
+                    bonus_name,
+                    bonus_description,
+                    bonus_value,
+                    note,
+                }
+            ]);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        res.status(200).json({ message: "Suggest posted successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
 
 module.exports = router;
