@@ -31,8 +31,9 @@ router.post('/post_code', async (req, res) => {
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
-        if (!bonus_value.trim().endsWith("€")) {
-            bonus_value = bonus_value.trim() + "€";
+        let final_bonus_value = bonus_value.trim();
+        if (!final_bonus_value.endsWith("€")) {
+            final_bonus_value += "€";
         }
 
         const { data, error } = await supabase
@@ -47,7 +48,7 @@ router.post('/post_code', async (req, res) => {
                     brand,
                     code,
                     description,
-                    bonus_value,
+                    bonus_value: final_bonus_value,
                 }
             ]);
 
