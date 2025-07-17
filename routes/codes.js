@@ -30,6 +30,7 @@ router.post('/post_code', async (req, res) => {
         if (!user_id) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
+        
 
         let final_bonus_value = bonus_value.trim();
         if (!final_bonus_value.endsWith("€")) {
