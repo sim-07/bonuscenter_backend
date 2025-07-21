@@ -17,21 +17,17 @@ const app = express();
 app.use(logger('dev'));
 app.use(cookieParser());
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
 
-    if (origin.startsWith(process.env.FRONTEND_URL)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  exposedHeaders: ['Vary']
 }));
+
+app.use((req, res, next) => {
+  res.header('Vary', 'Origin, Cookie');
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -44,6 +40,7 @@ const csrfProtection = csrf({
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     maxAge: 1000 * 60 * 60 * 72,
+    domain: '.bonuscenter.it'
   }
 });
 
