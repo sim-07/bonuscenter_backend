@@ -135,6 +135,33 @@ router.post('/get_user_code', async (req, res) => {
 });
 
 
+router.post('/get_codes_by_user', async (req, res) => {
+
+    const { user_id } = req.body;
+
+    try {
+
+        const { data, error } = await supabase
+            .from('referral_codes')
+            .select('*')
+            .eq('user_id', user_id);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        if (!data || data.length === 0) {
+            return res.status(200).json({ message: 'No referral code', data: [] });
+        }
+
+        res.status(200).json({ message: "User code recovered successfully", data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
+
 router.post('/get_all_referral_codes', async (req, res) => {
     const { name } = req.body;
 

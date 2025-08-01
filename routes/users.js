@@ -13,10 +13,12 @@ router.post('/create_user', async (req, res) => {
     const { username, email, password } = req.body;
     const user_id = uuidv4();
 
-    console.log("DATI RICEVUTI create_user: " + username + " " + email + " " + password)
-
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (username.length > 250 || password.length || email.length) {
+        return res.status(500).json({ error: 'Data too long' });
     }
 
     try {
@@ -168,6 +170,29 @@ router.post('/get_user_data', async (req, res) => {
             .from('users')
             .select('username, email, created_at')
             .eq('user_id', user_id);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        return res.status(200).json({ data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
+
+router.post('/find_user', async (req, res) => {
+
+    const { u } = req.body;
+
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('user_id, username, email, created_at')
+            .eq('username', u)
+            .single();
 
         if (error) {
             return res.status(500).json({ error: error.message });

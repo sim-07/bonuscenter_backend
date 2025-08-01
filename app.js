@@ -40,7 +40,7 @@ const csrfProtection = csrf({
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     maxAge: 1000 * 60 * 60 * 72,
-    domain: '.bonuscenter.it'
+    domain: process.env.NODE_ENV === 'production' ? '.bonuscenter.it' : undefined
   }
 });
 
