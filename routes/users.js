@@ -168,7 +168,7 @@ router.post('/get_user_data', async (req, res) => {
 
         const { data, error } = await supabase
             .from('users')
-            .select('username, email, created_at')
+            .select('user_id, username, email, created_at')
             .eq('user_id', user_id);
 
         if (error) {
