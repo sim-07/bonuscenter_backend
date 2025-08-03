@@ -11,6 +11,8 @@ const codesRouter = require('./routes/codes');
 const usedCodesRouter = require('./routes/used_codes');
 const notificationRouter = require('./routes/notification');
 const commentsRouter = require('./routes/comments');
+const chatRouter = require('./routes/chat');
+
 
 const app = express();
 
@@ -53,6 +55,7 @@ app.use('/users', csrfProtection, usersRouter);
 app.use('/notification', csrfProtection, notificationRouter);
 app.use('/codes', csrfProtection, codesRouter);
 app.use('/comments', csrfProtection, commentsRouter);
+app.use('/chat', csrfProtection, chatRouter);
 
 app.use((err, req, res, next) => {
   if (err.code === 'EBADCSRFTOKEN') {
