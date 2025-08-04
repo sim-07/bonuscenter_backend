@@ -63,27 +63,13 @@ router.post('/get_messages', async (req, res) => {
         const user_id = decodedData.user_id;
         const username = decodedData.username;
 
-
-        
         if (!user_id || !username) {
-            console.log("AUTH ERROR: Missing user_id or username in token");
-            console.log("user_id:", user_id);
-            console.log("username:", username);
-            return res.status(401).json({ error: 'Not authorized: missing user data' });
+            return res.status(401).json({ error: 'Not authorized' });
         }
-
-        console.log("DEBUG AUTH CHECK:");
-        console.log("User from token (user_id):", user_id);
-        console.log("Sender_id from request:", sender_id);
-        console.log("Receiver_id from request:", receiver_id);
 
         if (user_id !== sender_id && user_id !== receiver_id) {
-            console.log("AUTH FAIL: user_id does not match sender_id or receiver_id");
             return res.status(401).json({ error: 'Not authorized: user not part of this chat' });
         }
-
-
-
 
         const { data, error } = await supabase
             .from('chat')
