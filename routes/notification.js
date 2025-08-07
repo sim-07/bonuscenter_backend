@@ -117,20 +117,27 @@ router.post('/delete_notification', async (req, res) => {
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
         const user_id = decodedData.user_id;
 
+        let error = null;
+
         if (code_id) {
-            const { error } = await supabase
+            const result = await supabase
                 .from('notifications')
                 .delete()
                 .eq('code_id', code_id)
                 .eq('receiver', user_id);
+
+            error = result.error;
         } else if (notification_id) {
-            const { error } = await supabase
+            const result = await supabase
                 .from('notifications')
                 .delete()
                 .eq('notification_id', notification_id)
                 .eq('receiver', user_id);
-        }
 
+            error = result.error;
+        } else {
+            return res.status(400).json({ error: 'Missing code_id or notification_id' });
+        }
 
         if (error) {
             console.error("Supabase delete error:", error.message);
@@ -143,7 +150,6 @@ router.post('/delete_notification', async (req, res) => {
         return res.status(500).json({ err: 'Something went wrong', details: err.message });
     }
 });
-
 
 
 module.exports = router;
