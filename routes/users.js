@@ -181,7 +181,7 @@ router.post('/get_user_data', async (req, res) => {
 });
 
 
-router.post('/find_user', async (req, res) => {
+router.post('/find_user_by_username', async (req, res) => {
 
     const { u } = req.body;
 

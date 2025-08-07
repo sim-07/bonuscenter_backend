@@ -56,6 +56,7 @@ router.post('/create_notification', async (req, res) => {
                     notification_id,
                     receiver,
                     sender: user_id,
+                    sender_username: username,
                     code_id, // può essere null
                     type,
                     message: notificationMessage,
