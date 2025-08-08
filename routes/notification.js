@@ -98,6 +98,56 @@ router.post('/get_notifications', async (req, res) => {
             return res.status(500).json({ error: error.message });
         }
 
+
+        return res.status(200).json({ data });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+});
+
+router.post('/get_notifications_not_read', async (req, res) => {
+
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
+        const { data, error } = await supabase
+            .from('notifications')
+            .select("*")
+            .eq("receiver", user_id)
+            .eq("read", false);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        return res.status(200).json({ data });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Something went wrong', details: err.message });
+    }
+    
+});
+
+
+router.post('/set_read', async (req, res) => {
+
+    const token = req.cookies.authToken;
+    if (!token) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+        const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+        const user_id = decodedData.user_id;
+
         const { errorRead } = await supabase
             .from('notifications')
             .update({ read: true })
@@ -107,8 +157,7 @@ router.post('/get_notifications', async (req, res) => {
             console.error(errorRead);
         }
 
-
-        return res.status(200).json({ data });
+        return res.status(200).json({ message: 'Success' });
 
     } catch (err) {
         console.error(err);
