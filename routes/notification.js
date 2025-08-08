@@ -98,6 +98,16 @@ router.post('/get_notifications', async (req, res) => {
             return res.status(500).json({ error: error.message });
         }
 
+        const { errorRead } = await supabase
+            .from('notifications')
+            .update({ read: true })
+            .eq("receiver", user_id)
+
+        if (errorRead) {
+            console.error(errorRead);
+        }
+
+
         return res.status(200).json({ data });
 
     } catch (err) {
